@@ -47,7 +47,7 @@ class DatabaseMarkdownController
                 break;
             // 文成文件
             case 'getFile':
-                return $this->getFile($request);
+                return $this->getFile();
                 break;
 
             default:

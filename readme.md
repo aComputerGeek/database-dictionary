@@ -1,11 +1,18 @@
 # 数据库字典生成工具
 
-### 01 第一部分 引入路由 
+### 01 第一部分 引入路由 和引入服务提供者
 
 ```markdown
 Route::any('/database/markdown',"\CjwDBMD\src\DatabaseMarkdownController@index");
 ```
 这是所有的路由入口，内部通过`url=xxx`方法名进行对应的方法来处理业务逻辑
+```markdown
+配置服务提供者
+CjwDBMD\DatabaseMarkdownProvider::class,
+
+生成view 文件
+php artisan  vendor:publish 
+```
 
 ### 02 数据迁移
 需要手动的创建数据迁移
