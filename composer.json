@@ -1,5 +1,5 @@
 {
-  "name": "mr-jiawen/database-markdown",
+  "name": "mr-jiawen/database-dictionary",
   "license": "MIT",
   "authors": [
     {
@@ -11,7 +11,14 @@
   },
   "autoload": {
     "psr-4": {
-      "CjwDBMD\\": ""
+      "Jw\\Database\\Dictionary\\": "./src"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Jw\\Database\\Dictionary\\DatabaseDictionaryProvider"
+      ]
     }
   }
 }
