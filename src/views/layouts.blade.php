@@ -34,11 +34,11 @@
             display: inline-block;
         }
         .plane-fade-enter-active, .plane-fade-leave-active {
-            transition: opacity 1s;
+            /*transition: opacity 1s;*/
         }
         .plane-fade-enter, .plane-fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
-            opacity: 0;
-            transition: opacity 0.1s;
+            /*opacity: 0;*/
+            /*transition: opacity 0.1s;*/
         }
     </style>
 

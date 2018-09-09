@@ -102,7 +102,6 @@
                         </div>
                         <hr>
                         <pre v-show="item.helper.response">@{{ item.helper.response }}</pre>
-
                     </div>
                 </div>
             </transition>
