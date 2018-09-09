@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Jw\Database\Dictionary\Models\DatabaseDictionary;
 use Jw\Database\Dictionary\Models\Table;
+use Jw\Support\Tool\DataStructure;
 
 class DatabaseDictionaryController extends Controller
 {
@@ -99,5 +100,64 @@ class DatabaseDictionaryController extends Controller
             \File::put(storage_path('database/' . $fileName), $content);
         });
         return ['ServerNo' => 200];
+    }
+
+    public function helper(Request $request)
+    {
+        $table = Table::where('TABLE_NAME', $request->tableName)->first();
+
+        if (empty($table)) {
+            return response()->json(['ServerNo' => 400, 'ServerMsg' => '表不存在']);
+        }
+
+        if ($request->where) {
+            $where = explode(',', $request->where);
+        } else {
+            $where = null;
+        }
+
+        $models = DB::table($request->tableName)->when($where, function ($query) use ($where, $request) {
+            $fields = DB::select('show full columns from ' . $request->tableName);
+            $primaryKey = '';
+            array_map(function ($item) use (&$primaryKey) {
+                if ($item->Key == 'PRI') {
+                    $primaryKey = $item->Field;
+                }
+            }, $fields);
+            return $query->whereIn($primaryKey, $where);
+        });
+        if (count($where) > 1) {
+            $models = $models->get();
+        } else {
+            $models = $models->first();
+        }
+
+        if (empty($models)) {
+            return response()->json(['ServerNo' => 400, 'ServerMsg' => '没有对应的数据,请检查数据库']);
+        }
+        switch ($request->selectType) {
+            case 'json':
+                return response()->json([
+                    'ServerNo' => 200,
+                    'ServerData' => DataStructure::getJsonView($models, true, 4, ':')
+                ]);
+                break;
+            case 'phpArray':
+                return response()->json([
+                    'ServerNo' => 200,
+                    'ServerData' => DataStructure::getJsonView($models, true, 4, '=>')
+                ]);
+                break;
+            case 'swagger':
+                if (count($models) > 1) {
+                    $models = $models[0];
+                }
+                $construct = DB::select('show full columns from ' . $request->tableName);
+
+                dd($models, $construct);
+                break;
+            default:
+                return response()->json(['ServerNo' => 400, 'ServerMsg' => '系统异常']);
+        }
     }
 }

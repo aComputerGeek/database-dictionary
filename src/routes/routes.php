@@ -19,4 +19,6 @@ Route::prefix(config('database.database_dictionary_uri'))
         Route::get('/table/construct', 'DatabaseDictionaryController@tableConstruct')->name('table.construct');
 
         Route::get('/markdown', 'DatabaseDictionaryController@markdown')->name('markdown');
+
+        Route::get('/helper', 'DatabaseDictionaryController@helper')->name('helper');
     });

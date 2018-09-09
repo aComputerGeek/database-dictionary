@@ -24,7 +24,13 @@
                                 tableIsClose: true,
                                 moduleId: null,
                                 database_dictionary: null,
-                                fields: []
+                                fields: [],
+                                helper: {
+                                    where: null,
+                                    isClose: true,
+                                    selectType: null,
+                                    response: null,
+                                },
                             }
                         ],
                         selectModule: 0
@@ -141,6 +147,21 @@
                             }
                         })
                     },
+                    ajaxToHelper: function (data, callback = () => {
+                    }) {
+                        $.ajax({
+                            url: '{{ route('database.dictionary.helper') }}',
+                            type: 'get',
+                            data: data,
+                            dataType: 'json',
+                            success: (response) => {
+                                callback(response)
+                            },
+                            error: () => {
+                                console.log('error in table helper request')
+                            }
+                        })
+                    },
 
 
                     createModule: function () {
@@ -183,7 +204,13 @@
                                     tableIsClose: true,
                                     moduleId: null,
                                     database_dictionary: null,
-                                    fields: []
+                                    fields: [],
+                                    helper: {
+                                        where: null,
+                                        isClose: true,
+                                        selectType: null,
+                                        response: null,
+                                    },
                                 })
                             }
                         } else {
@@ -199,19 +226,32 @@
                                         tableIsClose: true,
                                         moduleId: null,
                                         database_dictionary: response[item],
-                                        fields: []
+                                        fields: [],
+                                        helper: {
+                                            where: null,
+                                            isClose: true,
+                                            selectType: null,
+                                            response: null,
+                                        },
                                     })
                                 }
                             });
                         }
                     },
                     tablePlaneIsCollapsed: function (key) {
-                        this.plane.table[key].tableIsClose = !this.plane.table[key].tableIsClose;
+                        /**
+                         * 如果是第一次直接 打开了 hepler  但是没有 field 时候， 此刻是加载 字段，不进行 折叠操作。其余情境正常流程
+                         */
+                        if(!(!this.plane.table[key].tableIsClose && this.plane.table[key].fields.length == 0)){
+                            this.plane.table[key].tableIsClose = !this.plane.table[key].tableIsClose;
+                        }
                         let that = this;
                         if (!this.plane.table[key].tableIsClose) {
                             this.ajaxToGetTableConstruct(this.plane.table[key], function (response) {
                                 that.$set(that.plane.table[key], 'fields', response);
                             })
+                        }else{
+                            this.plane.table[key].helper.isClose = true;
                         }
                     },
                     tableAddToModule: function (tableInfo) {
@@ -232,7 +272,21 @@
                         this.ajaxToUpdate(databaseDictionary, function () {
                             that.selectNavigation(that.plane.navigation_id)
                         });
-                    }
+                    },
+                    getHelper: function (item, type = null) {
+                        if(type !== null){
+                            item.helper.selectType = type;
+                            item.helper.isClose = false;
+                            item.tableIsClose = false;
+                        }
+                        this.ajaxToHelper({tableName: item.tableName, ...item.helper}, function (response) {
+                            if(response.ServerNo == 200){
+                                item.helper.response = response.ServerData
+                            }else{
+                                item.helper.response = response.ServerMsg
+                            }
+                        })
+                    },
                 },
                 mounted: function () {
                     let that = this;
