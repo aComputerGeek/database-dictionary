@@ -1,57 +1,30 @@
 # 数据库字典生成工具
 
-### 01 第一部分 引入路由 和引入服务提供者
+## 01. 简介
 
-```markdown
-Route::any('/database/markdown',"\CjwDBMD\src\DatabaseMarkdownController@index");
-```
-这是所有的路由入口，内部通过`url=xxx`方法名进行对应的方法来处理业务逻辑
-```markdown
-配置服务提供者
-CjwDBMD\DatabaseMarkdownProvider::class,
+在我们开发使用mysql 新建非常多的表（有时候会多达好几百张表）时候，有时候会感觉压力老大了。
 
-生成view 文件
-php artisan  vendor:publish 
-```
+因为mysql中是没有做 database 和 schema 区分的。 但是在逻辑上做表的分组是非常有必要的，这个组件就是完成这个这个工作。
 
-### 02 数据迁移
-需要手动的创建数据迁移
-```markdown
-php artisan make:migration create_database_markdown_table --create=database_markdown
-```
-然后需要编写数据迁移文件:
-```markdown
-/**
- * Run the migrations.
- *
- * @return void
- */
-public function up()
-{
-    Schema::create('database_markdown', function (Blueprint $table) {
-        $table->increments('id');
-        $table->string("name",255);
-        $table->tinyInteger("type");
-        $table->integer('father_id');
-        $table->integer('order');
-        $table->timestamps();
-    });
-}
+使用web界面提供一个简易的表逻辑分组
 
-/**
- * Reverse the migrations.
- *
- * @return void
- */
-public function down()
-{
-    Schema::dropIfExists('database_markdown');
-}
-```
+## 02. 使用方式
 
-### 03 接着，手动把模块分好
-```markdown
-XXXXXXXXXX
+1. 首先安装
+      ```
+      composer require mr-jiawen/database-dictionary
+      ```
+2. 然后 进行数据迁移 (新建一个表 database_dictionary)
+      ```
+      php artisan migrate
+      ```
+3. 直接访问：
+      ```
+      http://localhost/database
+      ```
+
+## 03 注意事项：
+如果需要 修改 uri , 可以在 config/database.php 文件设置 属性值：
 ```
-### 04 最后生成markdown文件
-生成的目录在下面的目录中：`storage/database`
+'database_dictionary_uri' => 'database'        // 访问 数据库字典的uri
+```
