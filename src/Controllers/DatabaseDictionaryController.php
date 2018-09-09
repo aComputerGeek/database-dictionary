@@ -145,7 +145,7 @@ class DatabaseDictionaryController extends Controller
             case 'phpArray':
                 return response()->json([
                     'ServerNo' => 200,
-                    'ServerData' => DataStructure::getJsonView($models, true, 4, '=>')
+                    'ServerData' => DataStructure::getJsonView($models, true, 4, '=>',true)
                 ]);
                 break;
             case 'swagger':

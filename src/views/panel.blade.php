@@ -91,7 +91,10 @@
                                     <div class="form-group" style="margin-bottom:0;">
                                         <label class="col-sm-6 control-label">主键过滤:</label>
                                         <div class="col-sm-6">
-                                            <input class="form-control" placeholder="" v-model="item.helper.where">
+                                            <input class="form-control" placeholder=""
+                                                   v-model="item.helper.where"
+                                                   @change="getHelper(item)"
+                                            >
                                         </div>
                                     </div>
                                 </form>
