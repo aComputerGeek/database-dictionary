@@ -4,10 +4,13 @@ namespace Jw\Database\Dictionary\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Jw\Database\Dictionary\Models\DatabaseDictionary;
 use Jw\Database\Dictionary\Models\Table;
 use Jw\Support\Tool\DataStructure;
+use Jw\Support\Tool\StringTool;
 
 class DatabaseDictionaryController extends Controller
 {
@@ -145,19 +148,127 @@ class DatabaseDictionaryController extends Controller
             case 'phpArray':
                 return response()->json([
                     'ServerNo' => 200,
-                    'ServerData' => DataStructure::getJsonView($models, true, 4, '=>',true)
+                    'ServerData' => DataStructure::getJsonView($models, true, 4, '=>', true)
                 ]);
                 break;
             case 'swagger':
                 if (count($models) > 1) {
                     $models = $models[0];
                 }
-                $construct = DB::select('show full columns from ' . $request->tableName);
-
-                dd($models, $construct);
+                $response = $this->getSwaggerView($request, $models, $table);
+                return response()->json([
+                    'ServerNo' => 200,
+                    'ServerData' => $response
+                ]);
                 break;
             default:
                 return response()->json(['ServerNo' => 400, 'ServerMsg' => '系统异常']);
         }
+    }
+
+    /**
+     * @param $request
+     * @param $model
+     * @param $table
+     * @return string
+     * @Author jiaWen.chen
+     */
+    private function getSwaggerView($request, $model, $table)
+    {
+        $schema = [
+            'schema' => null,
+            'title' => null,
+            'description' => null,
+            'type' => 'object',
+            'required' => [],
+            'property' => [
+                [
+                    'property' => null,
+                    'type' => null,
+                    'default' => null,
+                    'example' => null,
+                    'nullable' => null,
+                    'deprecated' => null,
+                    'description' => null,
+                ]
+            ],
+        ];
+
+        $schema['schema'] = Str::studly(Str::camel($table->TABLE_NAME));
+        $schema['title'] = $schema['schema'] . ' Model';
+        $schema['description'] = $table->TABLE_COMMENT;
+
+        $fields = DB::select('show full columns from ' . $request->tableName);
+        $fields = new Collection($fields);
+
+        $fields->each(function ($item, $key) use (&$schema, $model) {
+            $schema['property'][$key]['property'] = $item->Field;
+
+            if (strpos($item->Type, 'int') !== false) {
+                $schema['property'][$key]['type'] = 'integer';
+            } else if (strpos($item->Type, 'double') !== false ||
+                strpos($item->Type, 'double') !== false ||
+                strpos($item->Type, 'float') !== false ||
+                strpos($item->Type, 'decimal') !== false ||
+                strpos($item->Type, 'numeric') !== false
+            ) {
+                $schema['property'][$key]['type'] = 'float';
+            } else if (strpos($item->Type, 'text') !== false ||
+                strpos($item->Type, 'char') !== false) {
+                $schema['property'][$key]['type'] = 'string';
+            } else if (strpos($item->Type, 'time') !== false) {
+                $schema['property'][$key]['type'] = 'dateTime';
+            } else if (strpos($item->Type, 'date') !== false) {
+                $schema['property'][$key]['type'] = 'date';
+            }
+
+            $schema['property'][$key]['default'] = $item->Default;
+            $tmp = $item->Field;
+            $schema['property'][$key]['example'] = $model->$tmp;
+            $schema['property'][$key]['nullable'] = $item->Null == "YES" ? true : false;
+            if (!$schema['property'][$key]['nullable']) {
+                $schema['required'][] = $item->Field;
+            }
+            $schema['property'][$key]['deprecated'] = false;
+            $schema['property'][$key]['description'] = $item->Comment;
+        });
+
+
+        $response[] = "@OA\Schema(\n";
+        $response[] = $this->tabStr(1) . 'schema=' . StringTool::valueView($schema['schema']) . ",\n";
+        $response[] = $this->tabStr(1) . 'title=' . StringTool::valueView($schema['title']) . ",\n";
+        $response[] = $this->tabStr(1) . 'description=' . StringTool::valueView($schema['description']) . ",\n";
+        $response[] = $this->tabStr(1) . 'type=' . StringTool::valueView($schema['type']) . ",\n";
+        $response[] = $this->tabStr(1) . 'required={"' . implode('","', $schema['required']) . "\"},\n";
+        foreach ($schema['property'] as $item) {
+            $tmp = $this->tabStr(1) . "@OA\Property(";
+            $tmp .= 'property=' . StringTool::valueView($item['property']) . ', ';
+            $tmp .= 'type=' . StringTool::valueView($item['type']) . ', ';
+            $tmp .= 'default=' . StringTool::valueView($item['default']) . ', ';
+            $tmp .= 'example=' . StringTool::valueView($item['example']) . ', ';
+            $tmp .= 'nullable=' . StringTool::valueView($item['nullable']) . ', ';
+            $tmp .= 'deprecated=' . StringTool::valueView($item['deprecated']) . ', ';
+            $tmp .= 'description=' . StringTool::valueView($item['description']) . ' ';
+            $tmp .= "),\n";
+
+            $response = array_merge($response, [$tmp]);
+        }
+        $response[] = ")\n";
+        $response = array_map(function ($item) {
+            return ' * ' . $item;
+        }, $response);
+        array_unshift($response, "/** \n");
+        array_push($response, " */\n");
+
+        return implode("", $response);
+    }
+
+    private function tabStr($count = 1)
+    {
+        $response = '';
+        for ($i = 0; $i < $count * 4; $i++) {
+            $response .= ' ';
+        }
+        return $response;
     }
 }

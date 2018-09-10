@@ -78,7 +78,7 @@
                             </div>
                             <div class="col-xs-4">
                                 <h3>
-                                    <small><a class="text-success" @click="getHelper(item,'swagger')">swagger</a>
+                                    <small><a class="text-success" @click="getHelper(item,'swagger')">swagger3.0</a>
                                     </small>
                                     <small><a class="text-success" @click="getHelper(item,'json')">json</a></small>
                                     <small><a class="text-success" @click="getHelper(item,'phpArray')">phpArray</a>
