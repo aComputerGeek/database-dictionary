@@ -76,7 +76,20 @@ class DatabaseDictionaryController extends Controller
 
     public function tableConstruct(Request $request)
     {
-        return DB::select('show full columns from ' . $request->tableName);
+        $tableConstruct = DB::select('show full columns from ' . $request->tableName);
+        $tableConstruct = (new Collection($tableConstruct))->map(function ($item) {
+            $item->Default = StringTool::valueView($item->Default);
+            if (strpos($item->Type, 'int') !== false ||
+                strpos($item->Type, 'double') !== false ||
+                strpos($item->Type, 'float') !== false ||
+                strpos($item->Type, 'decimal') !== false ||
+                strpos($item->Type, 'numeric') !== false) {
+                $item->Default = (int)$item->Default;
+            }
+            return $item;
+        });
+
+        return $tableConstruct;
     }
 
     public function markdown()
@@ -207,7 +220,6 @@ class DatabaseDictionaryController extends Controller
             if (strpos($item->Type, 'int') !== false) {
                 $schema['property'][$key]['type'] = 'integer';
             } else if (strpos($item->Type, 'double') !== false ||
-                strpos($item->Type, 'double') !== false ||
                 strpos($item->Type, 'float') !== false ||
                 strpos($item->Type, 'decimal') !== false ||
                 strpos($item->Type, 'numeric') !== false

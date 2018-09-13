@@ -247,7 +247,7 @@
                         }
                         let that = this;
                         if (!this.plane.table[key].tableIsClose) {
-                            this.ajaxToGetTableConstruct(this.plane.table[key], function (response) {
+                            this.ajaxToGetTableConstruct({tableName:this.plane.table[key].tableName}, function (response) {
                                 that.$set(that.plane.table[key], 'fields', response);
                             })
                         }else{
