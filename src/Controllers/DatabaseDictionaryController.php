@@ -165,7 +165,7 @@ class DatabaseDictionaryController extends Controller
                 ]);
                 break;
             case 'swagger':
-                if (count($models) > 1) {
+                if (is_array($where) && count($where) > 1) {
                     $models = $models[0];
                 }
                 $response = $this->getSwaggerView($request, $models, $table);
