@@ -142,7 +142,7 @@ class DatabaseDictionaryController extends Controller
             }, $fields);
             return $query->whereIn($primaryKey, $where);
         });
-        if (count($where) > 1) {
+        if (is_array($where) && count($where) > 1) {
             $models = $models->get();
         } else {
             $models = $models->first();
